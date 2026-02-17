@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: movieChecker
+
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+
+  jpa:
+    properties:
+      hibernate:
+        default_schema: movie_checker
+
+    hibernate:
+      ddl-auto: none
+
+    show-sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  jwt:
+    secret: ${JWT_SECRET}
+    accessTokenExpiration: 1800       # 30m
+    refreshTokenExpiration: 604800    # 7d
