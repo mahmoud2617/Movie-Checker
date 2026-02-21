@@ -25,3 +25,17 @@ spring:
     secret: ${JWT_SECRET}
     accessTokenExpiration: 1800       # 30m
     refreshTokenExpiration: 604800    # 7d
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_ACCOUNT}
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+websiteBackendUrl: http://localhost:8080

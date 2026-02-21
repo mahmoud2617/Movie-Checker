@@ -1,7 +1,10 @@
 package com.mahmou.movieChecker.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 
@@ -21,20 +24,22 @@ public class UserMovies {
     @Column(name = "user_rate")
     private Double userRate;
 
-    @Column(name = "status")
+    @Column(name = "status", columnDefinition = "movie_checker.enum_watch_status")
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     private MovieStatus status;
 
     @Column(name = "is_favorite")
-    private boolean isFavorite;
+    private Boolean isFavorite;
 
     @Column(name = "added_at")
     private LocalDate addedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "movie_details_id")
     private MovieDetails movieDetails;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

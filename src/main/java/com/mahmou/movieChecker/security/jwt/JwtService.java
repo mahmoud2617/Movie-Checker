@@ -1,7 +1,6 @@
 package com.mahmou.movieChecker.security.jwt;
 
 import com.mahmou.movieChecker.config.JwtConfig;
-import com.mahmou.movieChecker.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -15,19 +14,19 @@ import java.util.Date;
 public class JwtService {
     private final JwtConfig jwtConfig;
 
-    public Jwt generateAccessToken(User user) {
+    public Jwt generateAccessToken(Token user) {
         return generateToken(user, jwtConfig.getAccessTokenExpiration());
     }
 
-    public Jwt generateRefreshToken(User user) {
+    public Jwt generateRefreshToken(Token user) {
         return generateToken(user, jwtConfig.getRefreshTokenExpiration());
     }
 
-    private Jwt generateToken(User user, long tokenExpiration) {
+    private Jwt generateToken(Token user, long tokenExpiration) {
         Claims claims = Jwts.claims()
-                .subject(user.getId().toString())
-                .add("email", user.getEmail())
-                .add("role", user.getRole().name())
+                .subject(user.id().toString())
+                .add("email", user.email())
+                .add("role", user.role().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .build();

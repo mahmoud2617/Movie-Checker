@@ -1,9 +1,9 @@
 package com.mahmou.movieChecker.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,24 +20,31 @@ public class MovieDetails {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "release_year")
+    private Integer year;
 
     @Column(name = "poster_url")
     private String posterUrl;
 
-    @Column(name = "release_date")
-    private LocalDate releaseDate;
+    @Column(name = "genre")
+    private String genre;
 
-    @Column(name = "category")
-    private String category;
+    @Column(name = "type")
+    private String type;
 
     @Column(name = "overview")
     private String overview;
 
-    @Column(name = "imdb_rate")
-    private String imdbRate;
+    @Column(name = "runtime")
+    private String runtime;
 
+    @Column(name = "imdb_rate")
+    private Double imdbRate;
+
+    @JsonIgnore
     @OneToMany(mappedBy = "movieDetails")
     private Set<UserMovies> userMoviesList = new HashSet<>();
 }

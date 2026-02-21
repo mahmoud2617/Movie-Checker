@@ -1,7 +1,6 @@
 package com.mahmou.movieChecker.exception;
 
 import lombok.Getter;
-import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;

@@ -67,21 +67,64 @@ public class GLobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(UserInvalidRequestDataException.class)
-    public ResponseEntity<ApiError> handleUserInvalidRequestDataException(
-        UserInvalidRequestDataException exception
+    @ExceptionHandler(InvalidRequestDataException.class)
+    public ResponseEntity<ApiError> handleInvalidRequestDataException(
+        InvalidRequestDataException exception
     ) {
         return ResponseEntity.badRequest().body(
             ApiError.badRequest(exception.getMessage())
         );
     }
 
-    @ExceptionHandler(UnmodifiedUserDataException.class)
-    public ResponseEntity<ApiError> handleUnmodifiedUserDataException(
-        UserInvalidRequestDataException exception
+    @ExceptionHandler(UnmodifiedDataException.class)
+    public ResponseEntity<ApiError> handleUnmodifiedDataException(
+        UnmodifiedDataException exception
     ) {
         return ResponseEntity.badRequest().body(
             ApiError.badRequest(exception.getMessage())
+        );
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<?> handleUnauthorizedUserException(
+        UnauthorizedUserException exception
+    ) {
+        if (exception.getMessage() != null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                new ApiError(HttpStatus.UNAUTHORIZED.value(), exception.getMessage())
+            );
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    @ExceptionHandler(InvalidVerificationEmailTokenException.class)
+    public ResponseEntity<ApiError> handleInvalidVerificationEmailTokenException(
+        InvalidVerificationEmailTokenException exception
+    ) {
+        String message = (exception.getMessage() == null)? "Invalid verification token." : exception.getMessage();
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(
+            new ApiError(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                message
+            )
+        );
+    }
+
+    @ExceptionHandler(UserDoesNotHaveTheMovieException.class)
+    public ResponseEntity<ApiError> handleUserDoesNotHaveTheMovieException(
+        UserDoesNotHaveTheMovieException exception
+    ) {
+        return ResponseEntity.badRequest().body(
+            ApiError.badRequest(exception.getMessage())
+        );
+    }
+
+    @ExceptionHandler(MovieNotFoundException.class)
+    public ResponseEntity<ApiError> handleMovieNotFoundException() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ApiError.notFound("Movie not found.")
         );
     }
 }

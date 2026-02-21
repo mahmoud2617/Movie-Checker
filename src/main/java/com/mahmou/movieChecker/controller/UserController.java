@@ -1,10 +1,10 @@
 package com.mahmou.movieChecker.controller;
 
 import com.mahmou.movieChecker.dto.*;
+import com.mahmou.movieChecker.security.annotation.IsSelfOrAdmin;
 import com.mahmou.movieChecker.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -37,11 +37,13 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @IsSelfOrAdmin
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable(name = "id") Long userId) {
         return ResponseEntity.ok(userService.getUserInfo(userId));
     }
 
+    @IsSelfOrAdmin
     @PatchMapping("/change-name/{id}")
     public ResponseEntity<Void> updateUserName(
         @PathVariable(name = "id") Long userId,
@@ -51,6 +53,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @IsSelfOrAdmin
     @PatchMapping("/change-email/{id}")
     public ResponseEntity<Void> updateUserEmail(
         @PathVariable(name = "id") Long userId,
@@ -60,6 +63,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @IsSelfOrAdmin
     @PatchMapping("/change-password/{id}")
     public ResponseEntity<Void> updateUserPassword(
         @PathVariable(name = "id") Long userId,
@@ -69,6 +73,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @IsSelfOrAdmin
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable(name = "id") Long userId) {
         userService.deleteUser(userId);

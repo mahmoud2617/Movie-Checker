@@ -3,8 +3,14 @@ package com.mahmou.movieChecker.service;
 import com.mahmou.movieChecker.config.JwtConfig;
 import com.mahmou.movieChecker.dto.JwtResponse;
 import com.mahmou.movieChecker.dto.LoginUserRequest;
+import com.mahmou.movieChecker.entity.VerificationToken;
+import com.mahmou.movieChecker.exception.InvalidVerificationEmailTokenException;
+import com.mahmou.movieChecker.repository.VerificationTokenRepository;
+import com.mahmou.movieChecker.security.jwt.Token;
 import com.mahmou.movieChecker.dto.UserDto;
 import com.mahmou.movieChecker.entity.User;
+import com.mahmou.movieChecker.exception.UnauthorizedUserException;
+import com.mahmou.movieChecker.exception.UserNotFoundException;
 import com.mahmou.movieChecker.mapper.UserMapper;
 import com.mahmou.movieChecker.repository.UserRepository;
 import com.mahmou.movieChecker.security.CustomUserDetails;
@@ -18,20 +24,29 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @AllArgsConstructor
 public class AuthService {
     private final AuthenticationManager authenticationManager;
+    private final VerificationTokenService verificationTokenService;
     private final JwtService jwtService;
     private final JwtConfig jwtConfig;
     private final UserRepository userRepository;
+    private final VerificationTokenRepository verificationTokenRepository;
     private final UserMapper userMapper;
 
-    public CustomUserDetails getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public User getCurrentUser() {
+        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return (CustomUserDetails) authentication.getPrincipal();
+        if (!(principal instanceof CustomUserDetails customUserDetails)) {
+            throw new UnauthorizedUserException();
+        }
+
+        return userRepository.findById(customUserDetails.getId()).orElseThrow(UserNotFoundException::new);
     }
 
     public JwtResponse login(LoginUserRequest loginRequest, HttpServletResponse response) {
@@ -44,8 +59,21 @@ public class AuthService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        Jwt accessToken = jwtService.generateAccessToken(userDetails.getUser());
-        Jwt refreshToken = jwtService.generateRefreshToken(userDetails.getUser());
+        if (!userDetails.getEnabled()) {
+            User user = userRepository.findById(userDetails.getId()).orElseThrow();
+            verificationTokenService.sendVerificationEmailToken(user);
+
+            throw new UnauthorizedUserException("Please verify your email first.");
+        }
+
+        Token token = new Token(
+                userDetails.getId(),
+                userDetails.getEmail(),
+                userDetails.getRole()
+        );
+
+        Jwt accessToken = jwtService.generateAccessToken(token);
+        Jwt refreshToken = jwtService.generateRefreshToken(token);
 
         Cookie cookie = new Cookie("refreshToken", refreshToken.toString());
         cookie.setHttpOnly(true);
@@ -57,21 +85,41 @@ public class AuthService {
         return new JwtResponse(accessToken.toString());
     }
 
+    @Transactional
+    public void verifyEmail(String token) {
+        VerificationToken verificationToken =
+                verificationTokenRepository.findByToken(token).orElseThrow(
+                    InvalidVerificationEmailTokenException::new
+                );
+
+        if (verificationToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new InvalidVerificationEmailTokenException("Token is expired.");
+        }
+
+        User user = verificationToken.getUser();
+        user.setEnabled(true);
+        userRepository.save(user);
+
+        verificationTokenRepository.deleteAllByUser(verificationToken.getUser());
+    }
+
     public JwtResponse refreshLogin(String refreshToken) {
         Jwt jwt = jwtService.parseToken(refreshToken);
 
         if (jwt == null || jwt.isExpired()) {
-            return null;
+            throw new UnauthorizedUserException();
         }
 
-        User user = userRepository.findById(jwt.getUserId()).orElseThrow();
+        User user = userRepository.findById(jwt.getUserId()).orElseThrow(UnauthorizedUserException::new);
 
-        Jwt accessToken = jwtService.generateAccessToken(user);
+        Jwt accessToken = jwtService.generateAccessToken(
+            new Token(user.getId(), user.getEmail(), user.getRole())
+        );
 
         return new JwtResponse(accessToken.toString());
     }
 
     public UserDto me() {
-        return userMapper.toDto(getCurrentUser().getUser());
+        return userMapper.toDto(getCurrentUser());
     }
 }

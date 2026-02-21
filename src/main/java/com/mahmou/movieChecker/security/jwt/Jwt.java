@@ -3,12 +3,15 @@ package com.mahmou.movieChecker.security.jwt;
 import com.mahmou.movieChecker.entity.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.Getter;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 public class Jwt {
     private final Claims claims;
+
+    @Getter
     private final SecretKey secretKey;
 
     public Jwt(Claims claims, SecretKey secretKey) {

@@ -3,9 +3,9 @@ package com.mahmou.movieChecker.service;
 import com.mahmou.movieChecker.dto.*;
 import com.mahmou.movieChecker.entity.Role;
 import com.mahmou.movieChecker.entity.User;
-import com.mahmou.movieChecker.exception.UnmodifiedUserDataException;
+import com.mahmou.movieChecker.exception.UnmodifiedDataException;
 import com.mahmou.movieChecker.exception.UserBadCredentialsException;
-import com.mahmou.movieChecker.exception.UserInvalidRequestDataException;
+import com.mahmou.movieChecker.exception.InvalidRequestDataException;
 import com.mahmou.movieChecker.exception.UserNotFoundException;
 import com.mahmou.movieChecker.mapper.UserMapper;
 import com.mahmou.movieChecker.repository.UserRepository;
@@ -20,6 +20,8 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UserService {
+    private final VerificationTokenService verificationTokenService;
+    private final EmailService emailService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
@@ -39,24 +41,18 @@ public class UserService {
                     throw new UserBadCredentialsException("Cannot use this email.");
                 });
 
-        users.stream()
-                .filter(u ->
-                        passwordEncoder.matches(password, u.getPassword())
-                )
-                .findFirst()
-                .ifPresent(u -> {
-                    throw new UserBadCredentialsException("Cannot use this password.");
-                });
-
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .role(Role.USER)
+                .enabled(false)
                 .build();
 
         user.setPassword(passwordEncoder.encode(password));
 
         userRepository.save(user);
+
+        verificationTokenService.sendVerificationEmailToken(user);
 
         return userMapper.toDto(user);
     }
@@ -82,30 +78,33 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (user.getName().equals(request.getName())) {
-            throw new UnmodifiedUserDataException("Unmodified name.");
+            throw new UnmodifiedDataException("Unmodified name.");
         }
 
         user.setName(request.getName());
+        userRepository.save(user);
     }
 
     public void updateUserEmail(Long userId, ChangeEmailRequest request) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (user.getEmail().equals(request.getEmail())) {
-            throw new UnmodifiedUserDataException("Unmodified email.");
+            throw new UnmodifiedDataException("Unmodified email.");
         }
 
         user.setEmail(request.getEmail());
+        userRepository.save(user);
     }
 
     public void updateUserPassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new UserInvalidRequestDataException("Invalid current password.");
+            throw new InvalidRequestDataException("Invalid current password.");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     public void deleteUser(Long userId) {

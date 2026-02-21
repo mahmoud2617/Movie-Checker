@@ -58,16 +58,20 @@ public class SecurityConfig {
                 c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(c -> c
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
+                .requestMatchers("/auth/verify").permitAll()
+                .requestMatchers("/swagger-ui*/**").permitAll()
+                .requestMatchers("/v3/api-docs*/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .exceptionHandling(c -> {
+            .exceptionHandling(c ->
                 c.authenticationEntryPoint(
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
-                );
-            });
+                )
+            );
 
         return httpSecurity.build();
     }
