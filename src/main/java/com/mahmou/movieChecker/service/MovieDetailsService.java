@@ -6,6 +6,7 @@ import com.mahmou.movieChecker.exception.MovieNotFoundException;
 import com.mahmou.movieChecker.repository.MovieDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
@@ -13,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -39,9 +41,9 @@ public class MovieDetailsService {
         List<String> localMoviesTitles = movieDetailsRepository.findAllMoviesTitles();
         List<MovieDetails> externalMovies = new ArrayList<>();
 
-        for (String title : titles) {
-            if (!localMoviesTitles.contains(title)) {
-                externalMovies.add(getMovieDetailsFromOmdb(title));
+        for (int i = 0; i < titles.size() / 2; i++) {
+            if (!localMoviesTitles.contains(titles.get(i))) {
+                externalMovies.add(getMovieDetailsFromOmdb(titles.get(i)));
             }
         }
 
@@ -57,34 +59,34 @@ public class MovieDetailsService {
 
         List<String> titles = getMoviesTitlesFromOmdb(q);
 
-        for (String title : titles) {
-            if (!localMoviesTitles.contains(title)) {
-                getMovieDetailsFromOmdb(title);
+        for (int i = 0; i < titles.size() / 2; i++) {
+            if (!localMoviesTitles.contains(titles.get(i))) {
+                getMovieDetailsFromOmdb(titles.get(i));
             }
         }
 
-        return Stream.concat(localMoviesTitles.stream(), titles.stream()).toList();
+        return Stream.concat(localMoviesTitles.stream(), titles.stream()).distinct().toList();
     }
 
     public MovieDetails getMovieDetails(String movieTitle) {
-        return movieDetailsRepository.findByTitleIgnoreCase(movieTitle)
-                .orElseGet(() -> getMovieDetailsFromOmdb(movieTitle.trim()));
+        return movieDetailsRepository.findByTitleIgnoreCase(movieTitle.trim())
+                .orElseGet(() -> getMovieDetailsFromOmdb(movieTitle));
     }
 
     private MovieDetails getMovieDetailsFromOmdb(String movieTitle) {
-        RetrievedDataFromOmdbApi movieData = (RetrievedDataFromOmdbApi) retrieveMovieDetailsFromOmdbApi("t", movieTitle);
+        RetrievedDataFromOmdbApi movieData = (RetrievedDataFromOmdbApi) retrieveMovieDetailsFromOmdbApi("t", movieTitle.trim());
 
-        if (movieData.Title() == null) {
+        if (movieData.imdbID() == null) {
             throw new MovieNotFoundException();
         }
 
         Integer year = null;
         Double imdbRate = null;
 
-        try {
-            year = Integer.valueOf(movieData.Year());
-        } catch (Exception ignored) {
+        if (movieData.Year() != null && movieData.Year().length() >= 4) {
+            year = Integer.parseInt(movieData.Year().substring(0, 4));
         }
+
 
         try {
             imdbRate = Double.valueOf(movieData.imdbRating());
@@ -92,6 +94,7 @@ public class MovieDetailsService {
         }
 
         MovieDetails movie = MovieDetails.builder()
+                .imdbId(movieData.imdbID())
                 .title(movieData.Title())
                 .year(year)
                 .runtime(movieData.Runtime())
@@ -102,7 +105,12 @@ public class MovieDetailsService {
                 .type(movieData.Type())
                 .build();
 
-        movieDetailsRepository.save(movie);
+        try {
+            movieDetailsRepository.save(movie);
+        } catch (DataIntegrityViolationException e) {
+            return movieDetailsRepository.findByImdbId(movieData.imdbID());
+        }
+
         return movie;
     }
 

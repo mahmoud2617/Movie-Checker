@@ -12,6 +12,6 @@ public class ChangeUserRateRequest {
     @NotBlank(message = "Movie title is required.")
     private String title;
 
-    @NotBlank(message = "User rate is required.")
-    private Double myRate;
+    @NotNull(message = "Rate cannot be null.")
+    private Double rate;
 }

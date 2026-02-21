@@ -10,6 +10,7 @@ import com.mahmou.movieChecker.exception.InvalidRequestDataException;
 import com.mahmou.movieChecker.exception.UserDoesNotHaveTheMovieException;
 import com.mahmou.movieChecker.repository.UserMoviesRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,13 +25,13 @@ public class UserMoviesService {
 
     public List<UserMovies> getUserMovies(MovieStatus status, Boolean favorite) {
         if (status == null && favorite == null) {
-            return userMoviesRepository.findAllUserMoviesByUser(authService.getCurrentUser());
+            return userMoviesRepository.findAllByUser(authService.getCurrentUser());
         } else if (status == null) {
-            return userMoviesRepository.findAllUserMoviesByFavoriteAndUser(favorite, authService.getCurrentUser());
+            return userMoviesRepository.findAllByFavoriteAndUser(favorite, authService.getCurrentUser());
         } else if (favorite == null) {
-            return userMoviesRepository.findAllUserMoviesByStatusUser(status, authService.getCurrentUser());
+            return userMoviesRepository.findAllByStatusAndUser(status, authService.getCurrentUser());
         } else {
-            return userMoviesRepository.findAllUserMoviesByStatusAndFavoriteAndUser(status, favorite, authService.getCurrentUser());
+            return userMoviesRepository.findAllByStatusAndFavoriteAndUser(status, favorite, authService.getCurrentUser());
         }
     }
 
@@ -38,8 +39,10 @@ public class UserMoviesService {
         String movieTitle = request.getTitle().trim();
         MovieStatus movieStatus = request.getStatus();
 
+        MovieDetails movieDetails = movieDetailsService.getMovieDetails(movieTitle);
+
         UserMovies userMovie = userMoviesRepository
-                            .findMovieByMovieTitleAndUser(movieTitle, authService.getCurrentUser())
+                            .findByMovieDetailsAndUser(movieDetails, authService.getCurrentUser())
                             .orElse(null);
 
         if (movieStatus == null) {
@@ -56,7 +59,6 @@ public class UserMoviesService {
         }
 
         if (userMovie == null) {
-            MovieDetails movieDetails = movieDetailsService.getMovieDetails(movieTitle);
             userMovie = UserMovies.builder()
                     .isFavorite(false)
                     .addedAt(LocalDate.now())
@@ -74,9 +76,11 @@ public class UserMoviesService {
         String movieTitle = request.getTitle().trim();
         boolean isFavorite = request.isFavorite();
 
+        MovieDetails movieDetails = movieDetailsService.getMovieDetails(movieTitle);
+
         UserMovies userMovie = userMoviesRepository
-                .findMovieByMovieTitleAndUser(movieTitle, authService.getCurrentUser())
-                .orElse(null);
+                            .findByMovieDetailsAndUser(movieDetails, authService.getCurrentUser())
+                            .orElse(null);
 
         if (!isFavorite) {
             if (userMovie == null) {
@@ -90,9 +94,7 @@ public class UserMoviesService {
 
             return;
         } else if (userMovie == null) {
-            MovieDetails movieDetails = movieDetailsService.getMovieDetails(movieTitle);
             userMovie = UserMovies.builder()
-                    .addedAt(LocalDate.now())
                     .movieDetails(movieDetails)
                     .user(authService.getCurrentUser())
                     .build();
@@ -105,14 +107,23 @@ public class UserMoviesService {
 
     public void updateUserRate(ChangeUserRateRequest request) {
         UserMovies userMovie = userMoviesRepository
-                .findMovieByMovieTitleAndUser(request.getTitle(), authService.getCurrentUser())
-                .orElse(null);
+                    .findByMovieTitleIgnoreCaseAndUser(
+                        request.getTitle().trim(),
+                        authService.getCurrentUser(),
+                        PageRequest.of(0, 1))
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new UserDoesNotHaveTheMovieException("You don't have this movie in any list."));
 
-        if (userMovie == null) {
-            throw new UserDoesNotHaveTheMovieException("You don't have this movie in any list.");
+        if (userMovie.getStatus() == null) {
+            throw new UserDoesNotHaveTheMovieException("Cannot rate movie that doesn't belong to any list");
         }
 
-        userMovie.setUserRate(request.getMyRate());
+        if (request.getRate() < 0.0 || request.getRate() > 10.0) {
+            throw new InvalidRequestDataException("Rate must be at most 10.0 and cannot be negative.");
+        }
+
+        userMovie.setUserRate(request.getRate());
         userMoviesRepository.save(userMovie);
     }
 }

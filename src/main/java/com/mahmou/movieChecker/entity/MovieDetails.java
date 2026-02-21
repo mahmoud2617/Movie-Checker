@@ -20,6 +20,9 @@ public class MovieDetails {
     @Column(name = "id")
     private Long id;
 
+    @Column(name = "imdb_id")
+    private String imdbId;
+
     @Column(name = "title")
     private String title;
 

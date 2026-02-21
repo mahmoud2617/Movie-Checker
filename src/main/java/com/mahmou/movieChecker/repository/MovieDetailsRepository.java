@@ -3,6 +3,7 @@ package com.mahmou.movieChecker.repository;
 import com.mahmou.movieChecker.entity.MovieDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,29 +17,32 @@ public interface MovieDetailsRepository extends JpaRepository<MovieDetails, Long
     @Query(value = """
             SELECT * FROM movie_checker.movie_details
             WHERE
-                title ILIKE ?1 || '%'
-                OR similarity(title, ?1) > 0.3
-                OR search_vector @@ websearch_to_tsquery(?1)
+                title ILIKE :q || '%'
+                OR movie_checker.similarity(title, CAST(:q AS text)) > 0.3
+                OR search_vector @@ websearch_to_tsquery(:q)
             ORDER BY (
                 CASE
-                    WHEN title ILIKE ?1 THEN 3.0
-                    WHEN title ILIKE ?1 || '%' THEN 2.0
+                    WHEN title ILIKE :q THEN 3.0
+                    WHEN title ILIKE :q || '%' THEN 2.0
                     ELSE 0
                 END
                 +
                 GREATEST (
-                    similarity(title, ?1),
-                    ts_rank_cd(search_vector, websearch_to_tsquery(?1))
+                    movie_checker.similarity(title, CAST(:q AS text)),
+                    ts_rank_cd(search_vector, websearch_to_tsquery(:q))
                 )
             ) DESC
-            LIMIT 20;""",
+            LIMIT 20""",
             nativeQuery = true)
-    List<MovieDetails> search(String q);
+    List<MovieDetails> search(@Param("q") String q);
 
     @Query(value = """
             SELECT title FROM movie_checker.movie_details
-            WHERE title ILIKE ?1 || '%'
+            WHERE title ILIKE :q || '%'
             ORDER BY title""",
             nativeQuery = true)
-    List<String> suggest(String q);
+    List<String> suggest(@Param("q") String q);
+
+    @Query("SELECT md FROM MovieDetails md WHERE md.imdbId = :imdbId")
+    MovieDetails findByImdbId(@Param("imdbId") String imdbId);
 }

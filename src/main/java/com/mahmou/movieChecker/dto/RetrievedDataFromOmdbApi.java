@@ -1,6 +1,7 @@
 package com.mahmou.movieChecker.dto;
 
 public record RetrievedDataFromOmdbApi (
+    String imdbID,
     String Title,
     String Year,
     String Runtime,

@@ -13,7 +13,8 @@ CREATE TABLE movie_checker.users (
 
 CREATE TABLE movie_checker.movie_details (
     id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
+    imdb_id VARCHAR(255) NOT NULL UNIQUE,
+    title TEXT NOT NULL,
     release_year SMALLINT,
     poster_url TEXT,
     genre TEXT,
@@ -25,10 +26,7 @@ CREATE TABLE movie_checker.movie_details (
 
 -- Indexes to optimize searching
 
-CREATE INDEX idx_movie_details_title
-ON movie_checker.movie_details (title);
-
-CREATE EXTENSION pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA movie_checker;
 
 ALTER TABLE movie_checker.movie_details
 ADD COLUMN search_vector tsvector
@@ -38,7 +36,7 @@ CREATE INDEX idx_movie_title_prefix
 ON movie_checker.movie_details (title text_pattern_ops);
 
 CREATE INDEX idx_movie_title_trgm
-ON movie_checker.movie_details USING gist (title gist_trgm_ops);
+ON movie_checker.movie_details USING gin (title gin_trgm_ops);
 
 CREATE INDEX idx_movie_search_vector
 ON movie_checker.movie_details USING gin (search_vector);
@@ -49,10 +47,10 @@ CREATE TYPE enum_watch_status AS ENUM ('WATCHED', 'WATCH_LIST');
 
 CREATE TABLE movie_checker.user_movies (
     id BIGSERIAL PRIMARY KEY,
-    user_rate DECIMAL(2, 1),
+    user_rate DECIMAL(3, 1),
     status enum_watch_status,
     is_favorite BOOLEAN NOT NULL DEFAULT FALSE,
-    added_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    added_at DATE,
     movie_details_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
 
