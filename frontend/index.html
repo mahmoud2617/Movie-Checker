@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieChecker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1><span class="brand-first">Movie</span> <span class="brand-second">Checker</span></h1>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#" data-nav="home" id="navHome" onclick="showHome(); return false;">Home</a></li>
+                <li><a href="#" data-nav="movies" id="navMovies" onclick="showMovies(); return false;">Browse</a></li>
+                <li id="authNav">
+                    <a href="#" data-nav="signin" id="navSignIn" onclick="showLoginModal(); return false;">Sign In</a>
+                </li>
+                <li id="userNav" style="display: none;">
+                    <span id="userGreeting"></span>
+                    <a href="#" data-nav="profile" id="navAccount" onclick="showProfile(); return false;" class="profile-link">Account</a>
+                    <a href="#" data-nav="myMovies" id="navMyMovies" onclick="showMyMovies(); return false;" class="my-movies-link">My Collection</a>
+                    <a href="#" onclick="confirmLogout(); return false;" class="logout-link">Sign Out</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Home Section -->
+        <section id="homeSection" class="section active">
+            <div class="hero">
+                <h2>Discover Your Next Favorite Movie</h2>
+                <p>Track, rate, and manage your movie collection</p>
+                <button class="btn btn-primary" onclick="showMovies(); return false;">Browse Movies</button>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Search & Discover</h3>
+                    <p>Find movies with our powerful search and recommendations</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Rate & Review</h3>
+                    <p>Rate movies and keep track of your personal opinions</p>
+                </div>
+                <div class="feature-card">
+                    <h3>My Favorites</h3>
+                    <p>Mark movies as favorites for quick access anytime</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Track Status</h3>
+                    <p>Monitor your watch progress: Watched, Watching, Want to Watch</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movies Browse Section -->
+        <section id="moviesSection" class="section">
+            <div class="movies-header">
+                <h2>Browse Movies</h2>
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search movies..."
+                        aria-label="Search movies"
+                        onkeyup="handleSearch()"
+                    >
+                    <button class="btn btn-secondary" onclick="searchMovies(); return false;">Search</button>
+                    <div id="searchSuggestions" class="search-suggestions"></div>
+                </div>
+            </div>
+
+            <!-- Movies Grid -->
+            <div class="movies-grid" id="moviesGrid">
+                <!-- Movies will be loaded here -->
+                <p class="loading">Loading movies...</p>
+            </div>
+        </section>
+
+        <!-- My Movies Section (Authenticated Only) -->
+        <section id="myMoviesSection" class="section" style="display: none;">
+            <div class="my-movies-header">
+                <h2>My Collection</h2>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all" onclick="filterMovies('all'); return false;">All</button>
+                    <button class="filter-btn" data-filter="watched" onclick="filterMovies('watched'); return false;">Watched</button>
+                    <button class="filter-btn" data-filter="watching" onclick="filterMovies('watching'); return false;">Watching</button>
+                    <button class="filter-btn" data-filter="wantToWatch" onclick="filterMovies('wantToWatch'); return false;">Want to Watch</button>
+                    <button class="filter-btn" data-filter="favorites" onclick="filterMovies('favorites'); return false;">Favorites</button>
+                </div>
+            </div>
+
+            <div class="user-movies-grid" id="userMoviesGrid">
+                <!-- User movies will be loaded here -->
+                <p class="loading">Loading your movies...</p>
+            </div>
+        </section>
+
+        <!-- Profile Section (Authenticated Only) -->
+        <section id="profileSection" class="section" style="display: none;">
+            <div class="profile-container">
+                <h2>My Account</h2>
+                <div class="profile-card">
+                    <div class="profile-info">
+                        <div class="info-group">
+                            <label>Name</label>
+                            <p id="profileName"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Email</label>
+                            <p id="profileEmail"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Role</label>
+                            <p id="profileRole"></p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="showEditProfile(); return false;">Edit Profile</button>
+                    <button class="btn btn-secondary" onclick="showMyMovies(); return false;">My Collection</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Edit Profile Section -->
+        <section id="editProfileSection" class="section" style="display: none;">
+            <div class="form-container">
+                <h2>Edit Account</h2>
+                <form id="editProfileForm" onsubmit="handleEditProfile(event)">
+                    <div class="form-group">
+                        <label for="editName">Name</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPassword">New Password (leave empty to keep current)</label>
+                        <input type="password" id="editPassword" placeholder="Enter new password or leave blank">
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" onclick="showProfile(); return false;">Cancel</button>
+                    </div>
+                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-light);">
+                    <div style="margin-top: 2rem;">
+                        <h3 style="font-size: 1rem; color: var(--text-dark); margin-bottom: 1rem;">Danger Zone</h3>
+                        <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount(); return false;">Delete Account</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>Sign In</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                <p class="form-link">New to MovieChecker? <a href="#" onclick="toggleRegisterForm(); return false;">Create Account</a></p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="registerName">Name</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                <p class="form-link">Already have an account? <a href="#" onclick="toggleRegisterForm(); return false;">Sign In</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Movie Details Modal -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="closeMovieModal()">&times;</span>
+            <div class="movie-modal-content" id="movieModalContent">
+                <!-- Movie details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Toast -->
+    <div id="alertToast" class="alert-toast"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner"></div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Sign Out</h2>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Are you sure you want to sign out?</p>
+            <div class="form-buttons">
+                <button class="btn btn-secondary" onclick="document.getElementById('logoutConfirmModal').classList.remove('active'); return false;">Cancel</button>
+                <button class="btn btn-danger" onclick="logout(); return false;">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--error);">Delete Account</h2>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">This action cannot be undone. All your data will be permanently deleted.</p>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Type <strong>delete</strong> to confirm:</p>
+            <input type="text" id="deleteConfirmText" placeholder="Type 'delete'" style="width: 100%; padding: 0.8rem; border: 2px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; margin-bottom: 1.5rem;" onkeydown="if(event.key==='Enter') confirmDeleteAccountSubmit(); return false;">
+            <div class="form-buttons">
+                <button class="btn btn-secondary" onclick="document.getElementById('deleteConfirmModal').classList.remove('active'); document.getElementById('deleteConfirmText').value = ''; return false;">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteAccountSubmit(); return false;">Delete My Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
