@@ -15,6 +15,6 @@ public class ChangePasswordRequest {
 
     @NotNull(message = "Password cannot be null.")
     @NotBlank(message = "Password is required.")
-    @Size(min = 8, max = 100, message = "Password must be from 8 to 100 character.")
+    @Size(min = 8, max = 100, message = "New password must be between 8 and 100 characters.")
     private String newPassword;
 }

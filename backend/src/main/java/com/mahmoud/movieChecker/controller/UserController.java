@@ -54,16 +54,6 @@ public class UserController {
     }
 
     @IsSelfOrAdmin
-    @PatchMapping("/change-email/{id}")
-    public ResponseEntity<Void> updateUserEmail(
-        @PathVariable(name = "id") Long userId,
-        @Valid @RequestBody ChangeEmailRequest changeEmailRequest
-    ) {
-        userService.updateUserEmail(userId, changeEmailRequest);
-        return ResponseEntity.noContent().build();
-    }
-
-    @IsSelfOrAdmin
     @PatchMapping("/change-password/{id}")
     public ResponseEntity<Void> updateUserPassword(
         @PathVariable(name = "id") Long userId,

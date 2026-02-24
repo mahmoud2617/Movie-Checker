@@ -21,7 +21,6 @@ import java.util.List;
 @AllArgsConstructor
 public class UserService {
     private final VerificationTokenService verificationTokenService;
-    private final EmailService emailService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
@@ -85,22 +84,15 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void updateUserEmail(Long userId, ChangeEmailRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-
-        if (user.getEmail().equals(request.getEmail())) {
-            throw new UnmodifiedDataException("Unmodified email.");
-        }
-
-        user.setEmail(request.getEmail());
-        userRepository.save(user);
-    }
-
     public void updateUserPassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new InvalidRequestDataException("Invalid current password.");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new InvalidRequestDataException("Please add a different new password.");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));

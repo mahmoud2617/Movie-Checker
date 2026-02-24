@@ -4,28 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MovieChecker</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/moviechecker_favicon_32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="assets/moviechecker_favicon_64.png">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="navbar-container">
+            <!-- Brand -->
             <div class="navbar-brand">
                 <h1><span class="brand-first">Movie</span> <span class="brand-second">Checker</span></h1>
             </div>
-            <ul class="nav-menu" id="navMenu">
+
+            <!-- Always-visible tabs (Home + Browse) -->
+            <ul class="nav-tabs">
                 <li><a href="#" data-nav="home" id="navHome" onclick="showHome(); return false;">Home</a></li>
                 <li><a href="#" data-nav="movies" id="navMovies" onclick="showMovies(); return false;">Browse</a></li>
-                <li id="authNav">
-                    <a href="#" data-nav="signin" id="navSignIn" onclick="showLoginModal(); return false;">Sign In</a>
-                </li>
-                <li id="userNav" style="display: none;">
-                    <span id="userGreeting"></span>
-                    <a href="#" data-nav="profile" id="navAccount" onclick="showProfile(); return false;" class="profile-link">Account</a>
-                    <a href="#" data-nav="myMovies" id="navMyMovies" onclick="showMyMovies(); return false;" class="my-movies-link">My Collection</a>
-                    <a href="#" onclick="confirmLogout(); return false;" class="logout-link">Sign Out</a>
-                </li>
             </ul>
+
+            <!-- Right side: Sign In (logged-out) OR hamburger (logged-in) -->
+            <div class="navbar-right">
+                <!-- Not logged in: show Sign In directly -->
+                <div id="authNav">
+                    <a href="#" data-nav="signin" id="navSignIn" onclick="showLoginModal(); return false;" class="btn-signin">Sign In</a>
+                </div>
+
+                <!-- Logged in: show greeting + hamburger -->
+                <div id="userNav" style="display: none;" class="user-nav-wrapper">
+                    <span id="userGreeting"></span>
+                    <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation" onclick="toggleNavMenu(); return false;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-dropdown" id="navDropdown">
+            <div class="nav-dropdown-inner">
+                <a href="#" data-nav="profile" id="navAccount" onclick="showProfile(); return false;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Account
+                </a>
+                <a href="#" data-nav="myMovies" id="navMyMovies" onclick="showMyMovies(); return false;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>
+                    My Collection
+                </a>
+                <div class="nav-dropdown-spacer"></div>
+                <a href="#" onclick="confirmLogout(); return false;" class="dropdown-signout">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Sign Out
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -53,7 +85,7 @@
                 </div>
                 <div class="feature-card">
                     <h3>Track Status</h3>
-                    <p>Monitor your watch progress: Watched, Watching, Want to Watch</p>
+                    <p>Monitor your watch progress: mark movies as Watched or add them to your Want to Watch list</p>
                 </div>
             </div>
         </section>
@@ -68,7 +100,7 @@
                         id="searchInput"
                         placeholder="Search movies..."
                         aria-label="Search movies"
-                        onkeyup="handleSearch()"
+                        oninput="handleSearchInput(event)"
                     >
                     <button class="btn btn-secondary" onclick="searchMovies(); return false;">Search</button>
                     <div id="searchSuggestions" class="search-suggestions"></div>
@@ -77,82 +109,110 @@
 
             <!-- Movies Grid -->
             <div class="movies-grid" id="moviesGrid">
-                <!-- Movies will be loaded here -->
                 <p class="loading">Loading movies...</p>
             </div>
         </section>
 
         <!-- My Movies Section (Authenticated Only) -->
-        <section id="myMoviesSection" class="section" style="display: none;">
+        <section id="myMoviesSection" class="section">
             <div class="my-movies-header">
                 <h2>My Collection</h2>
                 <div class="filter-buttons">
                     <button class="filter-btn active" data-filter="all" onclick="filterMovies('all'); return false;">All</button>
                     <button class="filter-btn" data-filter="watched" onclick="filterMovies('watched'); return false;">Watched</button>
-                    <button class="filter-btn" data-filter="watching" onclick="filterMovies('watching'); return false;">Watching</button>
                     <button class="filter-btn" data-filter="wantToWatch" onclick="filterMovies('wantToWatch'); return false;">Want to Watch</button>
                     <button class="filter-btn" data-filter="favorites" onclick="filterMovies('favorites'); return false;">Favorites</button>
                 </div>
             </div>
 
             <div class="user-movies-grid" id="userMoviesGrid">
-                <!-- User movies will be loaded here -->
                 <p class="loading">Loading your movies...</p>
             </div>
         </section>
 
         <!-- Profile Section (Authenticated Only) -->
-        <section id="profileSection" class="section" style="display: none;">
+        <section id="profileSection" class="section">
             <div class="profile-container">
                 <h2>My Account</h2>
                 <div class="profile-card">
+
+                    <!-- Info Display -->
                     <div class="profile-info">
                         <div class="info-group">
                             <label>Name</label>
-                            <p id="profileName"></p>
+                            <div class="info-row">
+                                <p id="profileName"></p>
+                                <button class="btn-edit" onclick="toggleEditName(); return false;" id="editNameToggle" aria-label="Edit name">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    Edit
+                                </button>
+                            </div>
+                            <!-- Inline name edit form (hidden by default) -->
+                            <div id="editNameForm" class="inline-edit-form" style="display:none;">
+                                <input type="text" id="inlineEditName" placeholder="Enter new name" class="inline-input">
+                                <div class="inline-edit-actions">
+                                    <button class="btn btn-primary btn-sm" onclick="submitEditName(); return false;">Save</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="toggleEditName(); return false;">Cancel</button>
+                                </div>
+                            </div>
                         </div>
                         <div class="info-group">
                             <label>Email</label>
                             <p id="profileEmail"></p>
                         </div>
-                        <div class="info-group">
-                            <label>Role</label>
-                            <p id="profileRole"></p>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="profile-divider">
+
+                    <!-- Change Password Section -->
+                    <div class="profile-edit-section">
+                        <div class="section-header-row">
+                            <h3 class="profile-section-title">Password</h3>
+                            <button class="btn-edit" onclick="toggleEditPassword(); return false;" id="editPasswordToggle" aria-label="Change password">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                Change Password
+                            </button>
+                        </div>
+                        <p class="password-hint">••••••••</p>
+
+                        <!-- Inline password edit form (hidden by default) -->
+                        <div id="editPasswordForm" class="inline-edit-form" style="display:none;">
+                            <div class="form-group">
+                                <label for="inlineOldPassword">Current Password</label>
+                                <input type="password" id="inlineOldPassword" placeholder="Enter your current password" class="inline-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="inlineNewPassword">New Password</label>
+                                <input type="password" id="inlineNewPassword" placeholder="Enter your new password" class="inline-input">
+                            </div>
+                            <div class="inline-edit-actions">
+                                <button class="btn btn-primary btn-sm" onclick="submitEditPassword(); return false;">Save Password</button>
+                                <button class="btn btn-secondary btn-sm" onclick="toggleEditPassword(); return false;">Cancel</button>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" onclick="showEditProfile(); return false;">Edit Profile</button>
-                    <button class="btn btn-secondary" onclick="showMyMovies(); return false;">My Collection</button>
+
+                    <!-- Danger Zone -->
+                    <hr class="profile-divider">
+                    <div class="danger-zone">
+                        <h3 class="danger-zone-title">Danger Zone</h3>
+                        <p class="danger-zone-desc">Permanently delete your account and all your data. This cannot be undone.</p>
+                        <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount(); return false;">Delete Account</button>
+                    </div>
+
                 </div>
             </div>
         </section>
 
-        <!-- Edit Profile Section -->
-        <section id="editProfileSection" class="section" style="display: none;">
+        <!-- Edit Profile Section (kept as stub so JS references don't break) -->
+        <section id="editProfileSection" class="section">
             <div class="form-container">
                 <h2>Edit Account</h2>
-                <form id="editProfileForm" onsubmit="handleEditProfile(event)">
-                    <div class="form-group">
-                        <label for="editName">Name</label>
-                        <input type="text" id="editName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" id="editEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editPassword">New Password (leave empty to keep current)</label>
-                        <input type="password" id="editPassword" placeholder="Enter new password or leave blank">
-                    </div>
-                    <div class="form-buttons">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" onclick="showProfile(); return false;">Cancel</button>
-                    </div>
-                    <hr style="margin: 2rem 0; border: none; border-top: 1px solid var(--border-light);">
-                    <div style="margin-top: 2rem;">
-                        <h3 style="font-size: 1rem; color: var(--text-dark); margin-bottom: 1rem;">Danger Zone</h3>
-                        <button type="button" class="btn btn-danger" onclick="confirmDeleteAccount(); return false;">Delete Account</button>
-                    </div>
-                </form>
+                <p style="color: var(--text-light);">Please use the Account tab to edit your profile.</p>
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="showProfile(); return false;">Go to Account</button>
+                </div>
             </div>
         </section>
     </main>
@@ -192,6 +252,18 @@
                 <button type="submit" class="btn btn-primary btn-full">Create Account</button>
                 <p class="form-link">Already have an account? <a href="#" onclick="toggleRegisterForm(); return false;">Sign In</a></p>
             </form>
+
+            <!-- Email Verification Notice (shown after successful registration) -->
+            <div id="verificationNotice" style="display:none;">
+                <div class="verification-notice">
+                    <div class="verification-icon">✉️</div>
+                    <h3>Check your inbox!</h3>
+                    <p>We've sent a verification email to <strong id="verificationEmail"></strong>.</p>
+                    <p>Please click the link in the email to verify your account before signing in.</p>
+                    <p class="verification-sub">Didn't receive it? Check your spam folder.</p>
+                    <button class="btn btn-primary btn-full" onclick="showLoginFromVerification(); return false;">Back to Sign In</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -229,7 +301,7 @@
             <h2 style="color: var(--error);">Delete Account</h2>
             <p style="color: var(--text-light); margin-bottom: 1.5rem;">This action cannot be undone. All your data will be permanently deleted.</p>
             <p style="color: var(--text-light); margin-bottom: 1.5rem;">Type <strong>delete</strong> to confirm:</p>
-            <input type="text" id="deleteConfirmText" placeholder="Type 'delete'" style="width: 100%; padding: 0.8rem; border: 2px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; margin-bottom: 1.5rem;" onkeydown="if(event.key==='Enter') confirmDeleteAccountSubmit(); return false;">
+            <input type="text" id="deleteConfirmText" placeholder="Type 'delete'" style="width: 100%; padding: 0.8rem; border: 2px solid var(--border-light); border-radius: 8px; font-size: 0.95rem; margin-bottom: 1.5rem;" onkeydown="if(event.key==='Enter'){ confirmDeleteAccountSubmit(); return false; }">
             <div class="form-buttons">
                 <button class="btn btn-secondary" onclick="document.getElementById('deleteConfirmModal').classList.remove('active'); document.getElementById('deleteConfirmText').value = ''; return false;">Cancel</button>
                 <button class="btn btn-danger" onclick="confirmDeleteAccountSubmit(); return false;">Delete My Account</button>
@@ -240,4 +312,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-

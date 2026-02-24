@@ -8,9 +8,9 @@
 		<version>4.0.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.mahmou</groupId>
+	<groupId>com.mahmoud</groupId>
 	<artifactId>movieChecker</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>movieChecker</name>
 	<description>Movies Checker</description>
 	<url/>
@@ -149,7 +149,7 @@
                     <url>${db.url}</url>
                     <user>${db.user}</user>
                     <password>${db.password}</password>
-                    <cleanDisabled>true</cleanDisabled>
+                    <cleanDisabled>false</cleanDisabled>
                     <schemas>
                         <schema>movie_checker</schema>
                     </schemas>

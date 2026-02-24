@@ -7,8 +7,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface MovieDetailsRepository extends JpaRepository<MovieDetails, Long> {
+    @Query("SELECT md FROM MovieDetails md")
+    Set<MovieDetails> findAllMovieDetails();
+
     Optional<MovieDetails> findByTitleIgnoreCase(String movieTitle);
 
     @Query("SELECT md.title FROM MovieDetails md")
@@ -44,5 +48,5 @@ public interface MovieDetailsRepository extends JpaRepository<MovieDetails, Long
     List<String> suggest(@Param("q") String q);
 
     @Query("SELECT md FROM MovieDetails md WHERE md.imdbId = :imdbId")
-    MovieDetails findByImdbId(@Param("imdbId") String imdbId);
+    Optional<MovieDetails> findByImdbId(@Param("imdbId") String imdbId);
 }

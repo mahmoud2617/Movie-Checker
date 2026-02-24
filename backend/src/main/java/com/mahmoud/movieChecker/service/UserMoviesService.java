@@ -50,12 +50,20 @@ public class UserMoviesService {
                 throw new UserDoesNotHaveTheMovieException("You already don't have this movie in any list.");
             }
 
-            userMoviesRepository.delete(userMovie);
-            return;
+            if (!userMovie.getIsFavorite()) {
+                userMoviesRepository.delete(userMovie);
+                return;
+            }
         }
 
-        if (userMovie != null && movieStatus == userMovie.getStatus()) {
-            throw new InvalidRequestDataException("Movie status already " + movieStatus);
+        if (userMovie != null){
+            if (movieStatus == userMovie.getStatus()) {
+                throw new InvalidRequestDataException("Movie status already " + movieStatus);
+            }
+
+            if (movieStatus != MovieStatus.WATCHED) {
+                userMovie.setUserRate(null);
+            }
         }
 
         if (userMovie == null) {
@@ -110,13 +118,14 @@ public class UserMoviesService {
                     .findByMovieTitleIgnoreCaseAndUser(
                         request.getTitle().trim(),
                         authService.getCurrentUser(),
-                        PageRequest.of(0, 1))
+                        PageRequest.of(0, 1)
+                    )
                     .stream()
                     .findFirst()
-                    .orElseThrow(() -> new UserDoesNotHaveTheMovieException("You don't have this movie in any list."));
+                    .orElseThrow(() -> new UserDoesNotHaveTheMovieException("You don't have this movie in watched list."));
 
-        if (userMovie.getStatus() == null) {
-            throw new UserDoesNotHaveTheMovieException("Cannot rate movie that doesn't belong to any list");
+        if (userMovie.getStatus() != MovieStatus.WATCHED) {
+            throw new UserDoesNotHaveTheMovieException("Cannot rate movie that haven't watch.");
         }
 
         if (request.getRate() < 0.0 || request.getRate() > 10.0) {

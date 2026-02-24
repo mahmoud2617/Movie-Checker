@@ -6,7 +6,6 @@ import com.mahmoud.movieChecker.exception.MovieNotFoundException;
 import com.mahmoud.movieChecker.repository.MovieDetailsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
@@ -14,6 +13,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -25,14 +25,14 @@ public class MovieDetailsService {
     private final MovieDetailsRepository movieDetailsRepository;
     private final RestClient restClient;
 
-    public List<MovieDetails> getAllMovies() {
-        return movieDetailsRepository.findAll();
+    public Set<MovieDetails> getAllMovies() {
+        return movieDetailsRepository.findAllMovieDetails();
     }
 
     public List<MovieDetails> search(String q) {
         List<MovieDetails> localMovies =  movieDetailsRepository.search(q);
 
-        if (localMovies.size() >= 5) {
+        if (localMovies.size() >= 20) {
             return localMovies;
         }
 
@@ -92,6 +92,12 @@ public class MovieDetailsService {
         } catch (Exception ignored) {
         }
 
+        MovieDetails localMovie = movieDetailsRepository.findByImdbId(movieData.imdbID()).orElse(null);
+
+        if (localMovie != null) {
+            return localMovie;
+        }
+
         MovieDetails movie = MovieDetails.builder()
                 .imdbId(movieData.imdbID())
                 .title(movieData.Title())
@@ -104,11 +110,7 @@ public class MovieDetailsService {
                 .type(movieData.Type())
                 .build();
 
-        try {
-            movieDetailsRepository.save(movie);
-        } catch (DataIntegrityViolationException e) {
-            return movieDetailsRepository.findByImdbId(movieData.imdbID());
-        }
+        movieDetailsRepository.save(movie);
 
         return movie;
     }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/movies")
@@ -17,7 +18,7 @@ public class MovieDetailsController {
     private final MovieDetailsService movieDetailsService;
 
     @GetMapping
-    public List<MovieDetails> getAllMovies() {
+    public Set<MovieDetails> getAllMovies() {
         return movieDetailsService.getAllMovies();
     }
 
