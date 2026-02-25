@@ -1,0 +1,234 @@
+/* ==================== Navbar ==================== */
+.navbar {
+    background: linear-gradient(135deg, var(--white) 0%, #f0f4ff 100%);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    /* position:sticky acts as containing block for position:absolute children */
+}
+
+.navbar-container {
+    /* Never exceed viewport — critical to stop horizontal scroll */
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    /* Clip only this row so its content never causes horizontal scroll */
+    overflow: hidden;
+}
+
+/* Brand */
+.navbar-brand {
+    flex-shrink: 0;
+}
+
+.navbar-brand h1 {
+    font-size: clamp(1rem, 2.2vw, 1.45rem);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    display: flex;
+    gap: 4px;
+    align-items: baseline;
+}
+
+.brand-first { color: #334155; font-weight: 800; }
+
+.brand-second {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 900;
+}
+
+/* Always-visible Home + Browse tabs */
+.nav-tabs {
+    list-style: none;
+    display: flex;
+    gap: 0.15rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Shared style for ALL nav tab-like items: Home, Browse, Sign In */
+.nav-tabs a,
+.btn-signin {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    display: inline-block;
+    line-height: 1.4;
+}
+
+.nav-tabs a:hover {
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+/* Active tab AND Sign In button: identical purple pill */
+.nav-tabs a.active-nav,
+.btn-signin {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white) !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.28);
+}
+
+.nav-tabs a.active-nav:hover,
+.btn-signin:hover {
+    color: var(--white) !important;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.38);
+    transform: translateY(-1px);
+}
+
+/* Right-side wrapper */
+.navbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    /* Allow greeting to shrink but not overflow */
+    min-width: 0;
+}
+
+/* User nav: greeting + hamburger — must not overflow */
+.user-nav-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0; /* allow flex children to shrink */
+}
+
+#userGreeting {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    /* No truncation — show the full name */
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+/* Hide greeting on screens too small to show it fully — hamburger stays */
+@media (max-width: 520px) {
+    #userGreeting { display: none; }
+}
+
+/* Hamburger button */
+.navbar-toggle {
+    background: transparent;
+    border: 1.5px solid var(--border-light);
+    cursor: pointer;
+    padding: 0.35rem 0.45rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.navbar-toggle:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: var(--primary-color);
+}
+
+.navbar-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background-color: #475569;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+}
+
+/* ==================== Dropdown menu ==================== */
+.nav-dropdown {
+    display: none;
+    /* Attach to navbar, not viewport — keeps it inside .navbar overflow */
+    position: absolute;
+    top: 56px; /* matches navbar height */
+    left: 0;
+    right: 0;
+    z-index: 190;
+    background: var(--white);
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09);
+    animation: slideDown 0.15s ease;
+}
+
+.nav-dropdown.open {
+    display: block;
+}
+
+.nav-dropdown-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    /* Consistent padding matching navbar */
+    padding: 0.5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: nowrap; /* single row: Account | My Collection | [spacer] | Sign Out */
+}
+
+.nav-dropdown-inner a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.8rem;
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.nav-dropdown-inner a:hover {
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.nav-dropdown-inner a.active-nav {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white) !important;
+}
+
+/* Spacer between left items and Sign Out */
+.nav-dropdown-spacer {
+    flex: 1;
+}
+
+.dropdown-signout {
+    color: var(--error) !important;
+    flex-shrink: 0;
+}
+
+.dropdown-signout:hover {
+    background: rgba(239, 68, 68, 0.08) !important;
+    color: var(--error) !important;
+}
+
+/* ==================== Responsive: Navbar ==================== */
+@media (max-width: 480px) {
+    .navbar-container { padding: 0 0.85rem; gap: 0.5rem; }
+    .nav-dropdown-inner { padding: 0.4rem 0.85rem; gap: 0.1rem; }
+    .nav-tabs a, .btn-signin { padding: 0.38rem 0.6rem; font-size: 0.82rem; }
+    #userGreeting { max-width: 12ch; }
+}

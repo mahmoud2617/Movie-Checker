@@ -34,7 +34,7 @@ public class AuthController {
     @GetMapping("/verify")
     public ResponseEntity<Void> verifyEmail(@RequestParam String token) {
         authService.verifyEmail(token);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/refresh")

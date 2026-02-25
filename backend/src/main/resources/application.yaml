@@ -15,8 +15,6 @@ spring:
     hibernate:
       ddl-auto: none
 
-    show-sql: true
-
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -25,6 +23,7 @@ spring:
     secret: ${JWT_SECRET}
     accessTokenExpiration: 1200       # 20m
     refreshTokenExpiration: 604800    # 7d
+    resetTokenExpiration: 600         # 10m
 
   mail:
     host: smtp.gmail.com
@@ -38,4 +37,9 @@ spring:
           starttls:
             enable: true
 
+server:
+  servlet:
+    context-path: /api
+
 websiteBackendUrl: http://localhost:8080
+websiteFrontendUrl: http://localhost:3000

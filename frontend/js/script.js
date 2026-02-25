@@ -209,26 +209,21 @@ async function handleLogin(event) {
             body: JSON.stringify({ email, password })
         });
 
-        let responseData = null;
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            try { responseData = await response.json(); } catch (_) { responseData = null; }
+        if (response.ok) {
+            const responseData = await response.json();
+            const token = responseData?.accessToken || responseData?.token || responseData?.token?.accessToken;
+            if (token) {
+                localStorage.setItem('accessToken', token);
+                currentToken = token;
+                await fetchCurrentUser();
+                closeLoginModal();
+                showAlert('Logged in successfully', 'success');
+            } else {
+                showAlert('Login successful but no token received', 'error');
+            }
         } else {
-            const text = await response.text().catch(() => '');
-            responseData = text ? { message: text } : null;
-        }
-
-        const token = responseData?.accessToken || responseData?.token || responseData?.token?.accessToken;
-
-        if (response.ok && token) {
-            localStorage.setItem('accessToken', token);
-            currentToken = token;
-            await fetchCurrentUser();
-            closeLoginModal();
-            showAlert('Logged in successfully', 'success');
-        } else {
-            const msg = responseData?.message || responseData?.error || null;
-            if (response.status === 401) {
+            const msg = await safeParseErrorMessage(response);
+            if (response.status === 401 || response.status === 400) {
                 showAlert(msg || 'Invalid email or password', 'error');
             } else if (response.status === 403) {
                 showAlert(msg || 'Account not verified. Please check your email.', 'error');
@@ -263,10 +258,7 @@ async function handleRegister(event) {
             // Show email verification notice
             showVerificationNotice(email);
         } else {
-            let errBody = null;
-            try { errBody = await response.json(); }
-            catch (e) { try { errBody = await response.text(); } catch (ee) { errBody = null; } }
-            const serverMessage = (errBody && (errBody.message || errBody.error || errBody.detail)) || errBody || `Registration failed (${response.status})`;
+            const serverMessage = await safeParseErrorMessage(response) || `Registration failed (${response.status})`;
             showAlert(serverMessage, 'error');
         }
     } catch (error) {
@@ -302,7 +294,7 @@ function showLoginFromVerification() {
 }
 
 function confirmLogout() {
-    document.getElementById('logoutConfirmModal').classList.add('active');
+    openGenericModal('logoutConfirmModal');
 }
 
 function logout() {
@@ -328,9 +320,12 @@ function logout() {
 }
 
 function confirmDeleteAccount() {
-    document.getElementById('deleteConfirmModal').classList.add('active');
-    document.getElementById('deleteConfirmText').value = '';
-    document.getElementById('deleteConfirmText').focus();
+    openGenericModal('deleteConfirmModal');
+    const input = document.getElementById('deleteConfirmText');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
 }
 
 async function confirmDeleteAccountSubmit() {
@@ -668,6 +663,7 @@ async function loadAllMovies() {
 }
 
 let suppressSuggestions = false;
+let suggestionAbortController = null;
 
 async function searchMovies() {
     // 1. Remove focus from search button immediately
@@ -675,6 +671,7 @@ async function searchMovies() {
 
     // 2. Kill any pending suggestion fetch and close the list NOW (synchronously)
     clearTimeout(suggestionsTimeout);
+    if (suggestionAbortController) suggestionAbortController.abort();
     suppressSuggestions = true;
     const suggestionsEl = document.getElementById('searchSuggestions');
     if (suggestionsEl) {
@@ -712,50 +709,7 @@ async function searchMovies() {
     }
 }
 
-function escapeHtml(text) {
-    return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-async function resolveMovieTitle(identifier) {
-    if (!identifier && identifier !== 0) return null;
-
-    if (typeof identifier === 'number' || String(identifier).match(/^\d+$/)) {
-        const idNum = Number(identifier);
-        const found = allMovies.find(m => m.id === idNum);
-        if (found?.title) return found.title;
-        const um = userMovies.find(u => u.movieDetails?.id === idNum);
-        if (um?.movieDetails?.title) return um.movieDetails.title;
-        try {
-            const resp = await fetch(`${API_BASE_URL}${API_ENDPOINTS.searchMovies}?q=${encodeURIComponent(String(idNum))}`);
-            if (resp.ok) {
-                const results = await resp.json();
-                if (Array.isArray(results) && results.length) {
-                    const m = results.find(r => r.id === idNum) || results[0];
-                    if (m?.title) return m.title;
-                }
-            }
-        } catch (e) { console.warn('resolveMovieTitle by id search failed', e); }
-        return null;
-    }
-
-    return String(identifier).trim() || null;
-}
-
-function findMovieByIdentifier(identifier) {
-    if (!identifier && identifier !== 0) return null;
-    if (typeof identifier === 'number' || String(identifier).match(/^\d+$/)) {
-        return allMovies.find(m => m.id === Number(identifier)) || null;
-    }
-    const title = String(identifier).trim().toLowerCase();
-    return allMovies.find(m => (m.title || '').toLowerCase() === title)
-        || userMovies.find(u => (u.movieDetails?.title || '').toLowerCase() === title)?.movieDetails
-        || null;
-}
+// ── Utilities removed — now in api.js ────────────────────────────────────────
 
 function renderQuickActions(identifier, options = {}) {
     const { status = null } = options;
@@ -900,8 +854,14 @@ async function handleSearch() {
 
     clearTimeout(suggestionsTimeout);
     suggestionsTimeout = setTimeout(async () => {
+        if (suggestionAbortController) suggestionAbortController.abort();
+        suggestionAbortController = new AbortController();
+
         try {
-            const resp = await fetch(`${API_BASE_URL}${API_ENDPOINTS.suggestMovies}?q=${encodeURIComponent(query)}`);
+            const resp = await fetch(
+                `${API_BASE_URL}${API_ENDPOINTS.suggestMovies}?q=${encodeURIComponent(query)}`,
+                { signal: suggestionAbortController.signal }
+            );
             if (resp.ok) {
                 const suggestions = await resp.json();
                 displaySearchSuggestions(suggestions);
@@ -909,6 +869,7 @@ async function handleSearch() {
                 document.getElementById('searchSuggestions').classList.remove('active');
             }
         } catch (err) {
+            if (err.name === 'AbortError') return;
             document.getElementById('searchSuggestions').classList.remove('active');
         }
     }, 300);
@@ -1044,8 +1005,7 @@ async function showMovieModal(identifier) {
         }
 
         displayMovieModal(movie, userMovie);
-        document.getElementById('movieModal').classList.add('active');
-        modalOpened();
+        openGenericModal('movieModal');
     } catch (err) {
         console.error('Error in showMovieModal', err);
         showAlert('Error loading movie details', 'error');
@@ -1068,8 +1028,8 @@ function displayMovieModal(movie, userMovie) {
     modalContent.innerHTML = `
         <div class="movie-modal-header">
             ${movie.posterUrl
-                ? `<img src="${movie.posterUrl}" alt="${escapeHtml(movie.title)}" class="movie-modal-poster"/>`
-                : `<div class="movie-modal-poster no-image"><div class="no-image-text">Poster unavailable</div></div>`}
+            ? `<img src="${movie.posterUrl}" alt="${escapeHtml(movie.title)}" class="movie-modal-poster"/>`
+            : `<div class="movie-modal-poster no-image"><div class="no-image-text">Poster unavailable</div></div>`}
             <div class="movie-modal-info">
                 <h2 class="movie-modal-title">${escapeHtml(movie.title || '')}</h2>
                 <div class="movie-modal-meta">
@@ -1217,35 +1177,15 @@ function loadProfileData() {
 // Keep for backwards compat
 function loadEditProfileData() { loadProfileData(); }
 function handleEditProfile(event) { event && event.preventDefault(); }
-function toggleOldPasswordField() {}
+function toggleOldPasswordField() { }
 
-async function safeParseErrorMessage(response) {
-    try {
-        const ct = response.headers.get('content-type') || '';
-        if (ct.includes('application/json')) {
-            const data = await response.json();
-            if (data?.message) return data.message;
-            if (data?.error) return data.error;
-            // Backend may return a validation map like {"newPassword":"Password must be..."}
-            if (typeof data === 'object' && data !== null) {
-                const firstValue = Object.values(data)[0];
-                if (typeof firstValue === 'string') return firstValue;
-            }
-            return null;
-        } else {
-            return await response.text() || null;
-        }
-    } catch (_) { return null; }
-}
+// ── Error helper removed — now in api.js ─────────────────────────────────────
 
 // ==================== Modals ====================
 function showLoginModal() {
-    document.getElementById('loginModal').classList.add('active');
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
     const notice = document.getElementById('verificationNotice');
     if (notice) notice.style.display = 'none';
-    modalOpened();
+    openGenericModal('loginModal');
 }
 
 function closeLoginModal() {
@@ -1262,7 +1202,7 @@ function closeMovieModal() {
     modalClosed();
 }
 
-window.onclick = function(event) {
+window.onclick = function (event) {
     const loginModal = document.getElementById('loginModal');
     const movieModal = document.getElementById('movieModal');
     if (event.target === loginModal) closeLoginModal();
@@ -1303,7 +1243,7 @@ async function updateMovieFavorite(identifier, isFavorite) {
             if (btn) { btn.classList.toggle('active', isFavorite); btn.textContent = isFavorite ? '♥ Favorited' : '♡ Favorite'; }
             return true;
         } else {
-            let errMsg = ''; try { errMsg = await resp.json(); errMsg = errMsg.message || JSON.stringify(errMsg); } catch(e) { errMsg = await resp.text(); }
+            const errMsg = await safeParseErrorMessage(resp);
             showAlert(errMsg || 'Failed to update favorite', 'error'); return false;
         }
     } catch (err) { showAlert('Error updating favorite: ' + err.message, 'error'); return false; }
@@ -1329,7 +1269,7 @@ async function updateMovieStatus(identifier, status) {
             }
             return true;
         } else {
-            let errMsg = ''; try { errMsg = await resp.json(); errMsg = errMsg.message || JSON.stringify(errMsg); } catch(e) { errMsg = await resp.text(); }
+            let errMsg = ''; try { errMsg = await resp.json(); errMsg = errMsg.message || JSON.stringify(errMsg); } catch (e) { errMsg = await resp.text(); }
             showAlert(errMsg || 'Failed to update status', 'error'); return false;
         }
     } catch (err) { showAlert('Error updating status: ' + err.message, 'error'); return false; }
@@ -1362,7 +1302,7 @@ async function updateMovieRate(identifier, rate) {
             }
             return true;
         } else {
-            let errMsg = ''; try { errMsg = await resp.json(); errMsg = errMsg.message || JSON.stringify(errMsg); } catch(e) { errMsg = await resp.text(); }
+            let errMsg = ''; try { errMsg = await resp.json(); errMsg = errMsg.message || JSON.stringify(errMsg); } catch (e) { errMsg = await resp.text(); }
             showAlert(errMsg || 'Failed to update rate', 'error'); return false;
         }
     } catch (err) { showAlert('Error updating rate: ' + err.message, 'error'); return false; }
@@ -1434,40 +1374,7 @@ function modalCancelRate(movieId) {
     if (existingInput) parent.replaceChild(btn, existingInput);
 }
 
-// ==================== Modal Scroll Lock ====================
-// We lock the *body* scroll when a modal is open so the background doesn't scroll,
-// but we do NOT block wheel/touchmove on the window — that would prevent scrolling
-// inside the modal itself. The modal overlay has overflow-y:auto in CSS.
-let _openModalsCount = 0;
-let _savedScrollY = 0;
-let _savedBodyStyle = '';
-
-function modalOpened() {
-    _openModalsCount++;
-    if (_openModalsCount === 1) {
-        // Save current scroll position and freeze body in place
-        _savedScrollY = window.scrollY;
-        _savedBodyStyle = document.body.getAttribute('style') || '';
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${_savedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.overflowY = 'scroll'; // keep scrollbar width stable
-    }
-}
-
-function modalClosed() {
-    _openModalsCount = Math.max(0, _openModalsCount - 1);
-    if (_openModalsCount === 0) {
-        // Restore body scroll
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.overflowY = '';
-        window.scrollTo(0, _savedScrollY);
-    }
-}
+// ── Scroll lock logic removed — now in modal.js ─────────────────────────────
 
 // ==================== Register/Login Toggle ====================
 function toggleRegisterForm() {

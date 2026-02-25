@@ -1,6 +1,7 @@
 package com.mahmoud.movieChecker.security.jwt;
 
 import com.mahmoud.movieChecker.entity.Role;
+import com.mahmoud.movieChecker.entity.TokenType;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.Getter;
@@ -33,6 +34,10 @@ public class Jwt {
 
     public Role getRole() {
         return Role.valueOf(claims.get("role", String.class));
+    }
+
+    public TokenType getTokenType() {
+        return TokenType.valueOf(claims.get("tokenType", String.class));
     }
 
     public String toString() {

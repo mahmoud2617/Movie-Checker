@@ -65,6 +65,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(c -> c
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users/**").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/users/reset-password/request").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/users/reset-password/verify").permitAll()
+                .requestMatchers("/users/password-reset/confirm").hasAuthority("RESET_PASSWORD")
                 .requestMatchers("/auth/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/auth/**").permitAll()
                 .requestMatchers("/auth/verify").permitAll()

@@ -8,19 +8,20 @@ CREATE TABLE movie_checker.users (
     email VARCHAR(255) NOT NULL UNIQUE,
     role enum_user_roles NOT NULL DEFAULT 'USER',
     password VARCHAR(255) NOT NULL,
-    enabled BOOLEAN NOT NULL DEFAULT FALSE -- (true, false) based on email verification
+    enabled BOOLEAN NOT NULL DEFAULT FALSE, -- (true, false) based on email verification
+    join_date DATE
 );
 
 CREATE TABLE movie_checker.movie_details (
     id BIGSERIAL PRIMARY KEY,
     imdb_id VARCHAR(255) NOT NULL UNIQUE,
     title TEXT NOT NULL,
-    release_year SMALLINT,
+    year SMALLINT,
     poster_url TEXT,
     genre TEXT,
     type VARCHAR(255),
     overview TEXT,
-    runtime VARCHAR(255),
+    runtime VARCHAR(150),
     imdb_rate DECIMAL(2, 1)
 );
 
@@ -80,3 +81,14 @@ CREATE TABLE movie_checker.verification_token (
 
 CREATE INDEX idx_verification_token_user_id
 ON movie_checker.verification_token(user_id);
+
+CREATE TABLE movie_checker.reset_info_verification_code (
+    id BIGSERIAL PRIMARY KEY,
+    verification_code INT NOT NULL,
+    user_id BIGINT NOT NULL,
+    expiration_date TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_t_reset_info_verification_code_c_user_id
+        FOREIGN KEY (user_id) REFERENCES movie_checker.users(id)
+        ON DELETE CASCADE
+);

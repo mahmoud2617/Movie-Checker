@@ -6,7 +6,10 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -39,11 +42,18 @@ public class User {
     @Column(name = "enabled")
     private Boolean enabled;
 
+    @Column(name = "join_date")
+    private LocalDate joinDate;
+
     @JsonIgnore
     @OneToMany(mappedBy = "user", orphanRemoval = true)
     private Set<UserMovies> userMoviesSet = new HashSet<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", orphanRemoval = true)
-    private Set<VerificationToken> verificationToken = new HashSet<>();
+    private Set<VerificationToken> verificationTokenSet = new HashSet<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", orphanRemoval = true)
+    private List<ResetInfoVerificationCode> ResetInfoVerificationCodeList = new ArrayList<>();
 }

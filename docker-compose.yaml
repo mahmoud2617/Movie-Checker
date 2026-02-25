@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: movie_checker-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD}
+    volumes:
+      - movie_checker-data:/var/lib/postgresql/data
+      - ./db/V1__initial_migration.sql:/docker-entrypoint-initdb.d/V1__initial_migration.sql
+    env_file:
+      - .env
+
+  backend:
+    build: ./backend
+    container_name: movie_checker-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: movie_checker-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  movie_checker-data:

@@ -26,7 +26,7 @@ public class MovieDetails {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "release_year")
+    @Column(name = "year")
     private Integer year;
 
     @Column(name = "poster_url")

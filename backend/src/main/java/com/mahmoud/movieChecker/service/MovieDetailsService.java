@@ -30,9 +30,13 @@ public class MovieDetailsService {
     }
 
     public List<MovieDetails> search(String q) {
-        List<MovieDetails> localMovies =  movieDetailsRepository.search(q);
+        if (q == null || q.isBlank()) {
+            return new ArrayList<>();
+        }
 
-        if (localMovies.size() >= 20) {
+        List<MovieDetails> localMovies = movieDetailsRepository.search(q.trim());
+
+        if (localMovies.size() >= 10) {
             return localMovies;
         }
 
@@ -40,9 +44,20 @@ public class MovieDetailsService {
         List<String> localMoviesTitles = movieDetailsRepository.findAllMoviesTitles();
         List<MovieDetails> externalMovies = new ArrayList<>();
 
-        for (int i = 0; i < titles.size() / 2; i++) {
-            if (!localMoviesTitles.contains(titles.get(i))) {
-                externalMovies.add(getMovieDetailsFromOmdb(titles.get(i)));
+        int i = 5;
+        
+        for (String title : titles) {
+            try {
+                if (!localMoviesTitles.contains(title)) {
+                    externalMovies.add(getMovieDetailsFromOmdb(title));
+                }
+
+                i--;
+            } catch (Exception ignored) {
+            }
+
+            if (i == 0) {
+                break;
             }
         }
 
@@ -50,7 +65,11 @@ public class MovieDetailsService {
     }
 
     public List<String> suggest(String q) {
-        List<String> localMoviesTitles = movieDetailsRepository.suggest(q);
+        if (q == null || q.isBlank()) {
+            return new ArrayList<>();
+        }
+
+        List<String> localMoviesTitles = movieDetailsRepository.suggest(q.trim());
 
         if (localMoviesTitles.size() >= 5) {
             return localMoviesTitles;
@@ -58,9 +77,12 @@ public class MovieDetailsService {
 
         List<String> titles = getMoviesTitlesFromOmdb(q);
 
-        for (int i = 0; i < titles.size() / 2; i++) {
-            if (!localMoviesTitles.contains(titles.get(i))) {
-                getMovieDetailsFromOmdb(titles.get(i));
+        for (String title : titles) {
+            try {
+                if (!localMoviesTitles.contains(title)) {
+                    getMovieDetailsFromOmdb(title);
+                }
+            } catch (Exception ignored) {
             }
         }
 
@@ -73,7 +95,9 @@ public class MovieDetailsService {
     }
 
     private MovieDetails getMovieDetailsFromOmdb(String movieTitle) {
-        RetrievedDataFromOmdbApi movieData = (RetrievedDataFromOmdbApi) retrieveMovieDetailsFromOmdbApi("t", movieTitle.trim());
+        RetrievedDataFromOmdbApi movieData = (RetrievedDataFromOmdbApi) retrieveMovieDetailsFromOmdbApi(
+            "t", movieTitle.trim()
+        );
 
         if (movieData.imdbID() == null) {
             throw new MovieNotFoundException();
@@ -85,7 +109,6 @@ public class MovieDetailsService {
         if (movieData.Year() != null && movieData.Year().length() >= 4) {
             year = Integer.parseInt(movieData.Year().substring(0, 4));
         }
-
 
         try {
             imdbRate = Double.valueOf(movieData.imdbRating());
@@ -122,11 +145,16 @@ public class MovieDetailsService {
         JsonNode root = mapper.readTree(json);
 
         JsonNode searchProperty = root.path("Search");
-
         List<String> titles = new ArrayList<>();
 
-        for (int i = 0; i < searchProperty.size(); i++) {
-            titles.add(searchProperty.get(i).path("Title").stringValue());
+        if (searchProperty.isArray()) {
+            for (int i = 0; i < searchProperty.size(); i++) {
+                JsonNode titleNode = searchProperty.get(i).path("Title");
+
+                if (!titleNode.isMissingNode()) {
+                    titles.add(titleNode.asString());
+                }
+            }
         }
 
         return titles;
@@ -139,9 +167,9 @@ public class MovieDetailsService {
 
         return restClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .queryParam("apiKey", apiKey)
-                        .queryParam(param, q)
-                        .build()
+                    .queryParam("apiKey", apiKey)
+                    .queryParam(param, q)
+                    .build()
                 )
                 .retrieve()
                 .body(body);

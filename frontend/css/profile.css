@@ -1,0 +1,238 @@
+/* ==================== Profile Section ==================== */
+.profile-container {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.profile-container h2 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+}
+
+.profile-card {
+    background: var(--white);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.profile-info {
+    margin-bottom: 0;
+}
+
+.info-group {
+    margin-bottom: 1.25rem;
+}
+
+.info-group label {
+    display: block;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.4rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.info-group p {
+    padding: 0.85rem 1rem;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+    color: var(--text-dark);
+    border: 1px solid var(--border-light);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Info row: value + edit button side by side */
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.info-row p {
+    flex: 1;
+    margin: 0;
+}
+
+/* Edit button (pencil icon style) */
+.btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.85rem;
+    border: 1.5px solid var(--border-light);
+    background: var(--white);
+    color: var(--text-light);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-edit:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.06);
+}
+
+.btn-edit svg {
+    flex-shrink: 0;
+}
+
+/* Inline edit form */
+.inline-edit-form {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    background: var(--light-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    animation: fadeIn 0.2s ease;
+}
+
+.inline-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text-dark);
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem;
+}
+
+.inline-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.inline-edit-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+/* Password section */
+.section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.profile-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.password-hint {
+    color: var(--text-light);
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    padding: 0.4rem 0;
+}
+
+.profile-divider {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 1.75rem 0;
+}
+
+.field-note {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--text-light);
+    margin-left: 0.4rem;
+}
+
+.danger-zone-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 0.5rem;
+}
+
+.danger-zone-desc {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* ==================== Responsive: Profile ==================== */
+@media (max-width: 768px) {
+    .profile-card { padding: 1.25rem; }
+    .info-row { flex-wrap: wrap; }
+    .inline-edit-actions { flex-direction: row; }
+    .inline-edit-actions .btn { flex: 1; text-align: center; }
+}
+
+@media (max-width: 480px) {
+    .profile-card { padding: 1rem; }
+}
+
+/* Subtle description under a section title */
+.section-desc {
+    color: var(--text-light);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    padding: 0.2rem 0;
+}
+
+/* Forgot password step hint text */
+.forgot-hint {
+    font-size: 0.88rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Forgot password — resend row */
+.forgot-resend {
+    margin-top: 0.75rem;
+    font-size: 0.83rem;
+    color: var(--text-light);
+}
+
+.forgot-resend-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--primary-color);
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.forgot-resend-btn:disabled {
+    color: var(--text-light);
+    cursor: default;
+}
+
+/* Forgot password — inline success state */
+.forgot-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0.5rem 0 0.25rem;
+    gap: 0.5rem;
+}
+
+.forgot-success-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--success);
+}

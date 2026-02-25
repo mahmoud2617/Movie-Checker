@@ -3,6 +3,7 @@ package com.mahmoud.movieChecker.service;
 import com.mahmoud.movieChecker.config.JwtConfig;
 import com.mahmoud.movieChecker.dto.JwtResponse;
 import com.mahmoud.movieChecker.dto.LoginUserRequest;
+import com.mahmoud.movieChecker.entity.TokenType;
 import com.mahmoud.movieChecker.entity.VerificationToken;
 import com.mahmoud.movieChecker.exception.InvalidVerificationEmailTokenException;
 import com.mahmoud.movieChecker.repository.VerificationTokenRepository;
@@ -26,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -66,14 +68,13 @@ public class AuthService {
             throw new UnauthorizedUserException("Please verify your email first.");
         }
 
-        Token token = new Token(
-                userDetails.getId(),
-                userDetails.getEmail(),
-                userDetails.getRole()
+        Jwt accessToken = jwtService.generateAccessToken(
+            new Token(userDetails.getId(), userDetails.getEmail(), userDetails.getRole(), TokenType.ACCESS)
         );
 
-        Jwt accessToken = jwtService.generateAccessToken(token);
-        Jwt refreshToken = jwtService.generateRefreshToken(token);
+        Jwt refreshToken = jwtService.generateRefreshToken(
+            new Token(userDetails.getId(), userDetails.getEmail(), userDetails.getRole(), TokenType.REFRESH)
+        );
 
         Cookie cookie = new Cookie("refreshToken", refreshToken.toString());
         cookie.setHttpOnly(true);
@@ -107,6 +108,7 @@ public class AuthService {
 
         User user = verificationToken.getUser();
         user.setEnabled(true);
+        user.setJoinDate(LocalDate.now());
         userRepository.save(user);
 
         verificationTokenRepository.deleteAllByUser(verificationToken.getUser());
@@ -123,7 +125,7 @@ public class AuthService {
         User user = userRepository.findById(jwt.getUserId()).orElseThrow(UnauthorizedUserException::new);
 
         Jwt accessToken = jwtService.generateAccessToken(
-            new Token(user.getId(), user.getEmail(), user.getRole())
+            new Token(user.getId(), user.getEmail(), user.getRole(), TokenType.ACCESS)
         );
 
         return new JwtResponse(accessToken.toString());

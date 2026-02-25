@@ -14,19 +14,24 @@ import java.util.Date;
 public class JwtService {
     private final JwtConfig jwtConfig;
 
-    public Jwt generateAccessToken(Token user) {
-        return generateToken(user, jwtConfig.getAccessTokenExpiration());
+    public Jwt generateAccessToken(Token userToken) {
+        return generateToken(userToken, jwtConfig.getAccessTokenExpiration());
     }
 
-    public Jwt generateRefreshToken(Token user) {
-        return generateToken(user, jwtConfig.getRefreshTokenExpiration());
+    public Jwt generateRefreshToken(Token userToken) {
+        return generateToken(userToken, jwtConfig.getRefreshTokenExpiration());
     }
 
-    private Jwt generateToken(Token user, long tokenExpiration) {
+    public Jwt generateResetToken(Token userToken) {
+        return generateToken(userToken, jwtConfig.getResetTokenExpiration());
+    }
+
+    private Jwt generateToken(Token userToken, long tokenExpiration) {
         Claims claims = Jwts.claims()
-                .subject(user.id().toString())
-                .add("email", user.email())
-                .add("role", user.role().name())
+                .subject(userToken.id().toString())
+                .add("email", userToken.email())
+                .add("role", userToken.role().name())
+                .add("tokenType", userToken.tokenType().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .build();

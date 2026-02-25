@@ -127,4 +127,11 @@ public class GLobalExceptionHandler {
             ApiError.notFound("Movie not found.")
         );
     }
+
+    @ExceptionHandler(InvalidVerificationEmailCodeException.class)
+    public ResponseEntity<ApiError> handleInvalidVerificationEmailCodeException() {
+        return ResponseEntity.badRequest().body(
+                ApiError.badRequest("Invalid verification code.")
+        );
+    }
 }

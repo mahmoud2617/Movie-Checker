@@ -1,5 +1,6 @@
 package com.mahmoud.movieChecker.filter;
 
+import com.mahmoud.movieChecker.entity.TokenType;
 import com.mahmoud.movieChecker.security.CustomUserDetails;
 import com.mahmoud.movieChecker.security.jwt.Jwt;
 import com.mahmoud.movieChecker.security.jwt.JwtService;
@@ -9,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -16,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -52,10 +57,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt.getRole()
         );
 
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+
+        if (jwt.getTokenType() == TokenType.RESET_PASSWORD) {
+             authorities = List.of(new SimpleGrantedAuthority("RESET_PASSWORD"));
+        }
+
         var authentication = new UsernamePasswordAuthenticationToken(
             userDetails,
             null,
-            userDetails.getAuthorities()
+            authorities
         );
 
         authentication.setDetails(

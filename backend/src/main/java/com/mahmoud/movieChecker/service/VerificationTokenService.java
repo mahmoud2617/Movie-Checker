@@ -14,18 +14,18 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class VerificationTokenService {
-    @Value("${websiteBackendUrl}")
+    @Value("${websiteFrontendUrl}")
     private String websiteUrl;
 
     private final EmailService emailService;
     private final VerificationTokenRepository verificationTokenRepository;
 
     public void sendVerificationEmailToken(User user) {
-        String link = websiteUrl + "/auth/verify?token=" + generateVerificationToken(user);
+        String link = websiteUrl + "/verify?token=" + generateVerificationToken(user);
 
         String expirationTime = LocalDateTime.now()
-                            .plusHours(4)
-                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                .plusHours(4)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         String subject = "Verify your Movie Checker account";
 
@@ -39,6 +39,8 @@ public class VerificationTokenService {
                 Note: This link is valid for a limited time and will expire on %s.
                 
                 If you did not create an account, you can safely ignore this email.
+                
+                — MovieChecker Team
                 """,
                 user.getName(),
                 link,

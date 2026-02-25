@@ -36,15 +36,13 @@ public interface MovieDetailsRepository extends JpaRepository<MovieDetails, Long
                     ts_rank_cd(search_vector, websearch_to_tsquery(:q))
                 )
             ) DESC
-            LIMIT 20""",
-            nativeQuery = true)
+            LIMIT 20""", nativeQuery = true)
     List<MovieDetails> search(@Param("q") String q);
 
     @Query(value = """
             SELECT title FROM movie_checker.movie_details
             WHERE title ILIKE :q || '%'
-            ORDER BY title""",
-            nativeQuery = true)
+            ORDER BY title""", nativeQuery = true)
     List<String> suggest(@Param("q") String q);
 
     @Query("SELECT md FROM MovieDetails md WHERE md.imdbId = :imdbId")

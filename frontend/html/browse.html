@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieChecker — Browse</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/moviechecker_favicon_32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/moviechecker_favicon_64.png">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/navbar.css">
+    <link rel="stylesheet" href="/css/movies.css">
+    <link rel="stylesheet" href="/css/modals.css">
+    <link rel="stylesheet" href="/css/utilities.css">
+</head>
+
+<body>
+
+    <!-- ==================== Navbar ==================== -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1><a href="/index.html" style="text-decoration:none;display:flex;gap:4px;align-items:baseline;">
+                        <span class="brand-first">Movie</span><span class="brand-second">Checker</span>
+                    </a></h1>
+            </div>
+            <ul class="nav-tabs">
+                <li><a href="/index.html" data-nav="home">Home</a></li>
+                <li><a href="/browse" data-nav="browse">Browse</a></li>
+            </ul>
+            <div class="navbar-right">
+                <div id="authNav">
+                    <a href="#" onclick="showLoginModal(); return false;" class="btn-signin">Sign In</a>
+                </div>
+                <div id="userNav" style="display:none;" class="user-nav-wrapper">
+                    <span id="userGreeting"></span>
+                    <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation"
+                        onclick="toggleNavMenu(); return false;">
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="nav-dropdown" id="navDropdown">
+            <div class="nav-dropdown-inner">
+                <a href="/profile" data-nav="profile">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Account
+                </a>
+                <a href="/collection" data-nav="collection">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="2" />
+                        <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5" />
+                    </svg>
+                    My Collection
+                </a>
+                <div class="nav-dropdown-spacer"></div>
+                <a href="#" onclick="confirmLogout(); return false;" class="dropdown-signout">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Sign Out
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== Page Content ==================== -->
+    <main class="container">
+        <div class="movies-header">
+            <h2>Browse Movies</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search movies..." aria-label="Search movies"
+                    oninput="handleSearchInput(event)">
+                <button class="btn btn-secondary" onclick="searchMovies(); return false;">Search</button>
+                <div id="searchSuggestions" class="search-suggestions"></div>
+            </div>
+        </div>
+
+        <div class="movies-grid" id="moviesGrid">
+            <p class="loading">Loading movies...</p>
+        </div>
+    </main>
+
+    <!-- ==================== Movie Details Modal ==================== -->
+    <div id="movieModal" class="modal">
+        <div class="modal-content modal-large">
+            <span class="close" onclick="closeMovieModal()">&times;</span>
+            <div class="movie-modal-content" id="movieModalContent"></div>
+        </div>
+    </div>
+
+    <!-- ==================== Login Modal ==================== -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>Sign In</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                <p class="form-link">New to MovieChecker? <a href="#"
+                        onclick="toggleRegisterForm(); return false;">Create Account</a></p>
+                <p class="form-link" style="margin-top:0.25rem;"><a href="/forgot-password">Forgot your password?</a>
+                </p>
+            </form>
+            <form id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="registerName">Name</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+                <p class="form-link">Already have an account? <a href="#"
+                        onclick="toggleRegisterForm(); return false;">Sign In</a></p>
+                <p class="form-link" style="margin-top:0.25rem;"><a href="/forgot-password">Forgot your password?</a>
+                </p>
+            </form>
+            <div id="verificationNotice" style="display:none;">
+                <div class="verification-notice">
+                    <div class="verification-icon">✉️</div>
+                    <h3>Check your inbox!</h3>
+                    <p>We've sent a verification email to <strong id="verificationEmail"></strong>.</p>
+                    <p>Please click the link in the email to verify your account before signing in.</p>
+                    <p class="verification-sub">Didn't receive it? Check your spam folder.</p>
+                    <button class="btn btn-primary btn-full" onclick="showLoginFromVerification(); return false;">Back
+                        to Sign In</button>
+                </div>
+            </div>
+            <div id="modalForgotForm" style="display:none;">
+                <div id="modalForgotBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Sign Out</h2>
+            <p style="color:var(--text-light);margin-bottom:1.5rem;">Are you sure you want to sign out?</p>
+            <div class="form-buttons">
+                <button class="btn btn-secondary"
+                    onclick="closeGenericModal('logoutConfirmModal'); return false;">Cancel</button>
+                <button class="btn btn-danger" onclick="logout(); return false;">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Toast & Spinner -->
+    <div id="alertToast" class="alert-toast"></div>
+    <div id="loadingSpinner" class="loading-spinner"></div>
+
+    <!-- ==================== Scripts ==================== -->
+    <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/modal.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/movies.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,125 @@
+/* ==================== Hero Section ==================== */
+.hero {
+    text-align: center;
+    padding: clamp(3rem, 8vw, 6rem) 2rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+    border-radius: 16px;
+    margin-bottom: 4rem;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.hero h2 {
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    margin-bottom: 1rem;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.hero p {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: var(--text-light);
+    margin-bottom: 2.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ==================== Features Grid ==================== */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.feature-card {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.feature-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+}
+
+.feature-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.feature-card p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ==================== Contact Section ==================== */
+.contact-section {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2.5rem 1.5rem;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+}
+
+.contact-section h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.contact-section p {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.contact-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.contact-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    opacity: 0.92;
+}
+
+.contact-link--linkedin { background: #0077b5; color: #fff; }
+.contact-link--github   { background: #24292e; color: #fff; }
+
+/* ==================== Responsive: Home ==================== */
+@media (max-width: 768px) {
+    .hero { border-radius: 12px; }
+    .features-grid { gap: 1rem; }
+    .feature-card { padding: 1.5rem; }
+}

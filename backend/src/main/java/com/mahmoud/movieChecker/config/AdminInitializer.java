@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Component
 @RequiredArgsConstructor
 public class AdminInitializer implements CommandLineRunner {
@@ -29,11 +31,11 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Transactional
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (adminName.isBlank() || adminEmail.isBlank() || adminPassword.isBlank())
             return;
 
-        if (userRepository.existsByRole(Role.ADMIN))
+        if (userRepository.existsByRole(Role.ADMIN) || userRepository.existsByEmail(adminEmail))
             return;
 
         User admin = User.builder()
@@ -42,6 +44,7 @@ public class AdminInitializer implements CommandLineRunner {
                 .role(Role.ADMIN)
                 .password(passwordEncoder.encode(adminPassword))
                 .enabled(true)
+                .joinDate(LocalDate.now())
                 .build();
 
         userRepository.save(admin);
