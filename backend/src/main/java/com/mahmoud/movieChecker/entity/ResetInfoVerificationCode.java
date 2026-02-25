@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "reset_info_verification_code")
+@Table(name = "reset_info_verification_code", schema="movie_checker")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

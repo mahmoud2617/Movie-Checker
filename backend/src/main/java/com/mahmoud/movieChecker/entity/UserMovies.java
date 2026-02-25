@@ -9,7 +9,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "user_movies")
+@Table(name = "user_movies", schema="movie_checker")
 @Getter
 @Setter
 @Builder

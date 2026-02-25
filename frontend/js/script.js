@@ -1,5 +1,5 @@
 // ==================== API Configuration ====================
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = window.ENV_CONFIG?.WEBSITE_BACKEND_URL || 'http://localhost:8080';
 const API_ENDPOINTS = {
     // Auth endpoints
     login: '/auth/login',

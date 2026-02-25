@@ -6,8 +6,6 @@ spring:
     properties:
       hibernate:
         default_schema: movie_checker
-    hibernate:
-      ddl-auto: none
 
   flyway:
     enabled: true
@@ -35,5 +33,5 @@ spring:
           starttls:
             enable: true
 
-websiteBackendUrl: http://localhost:8080
-websiteFrontendUrl: http://localhost:3000
+websiteBackendUrl: ${WEBSITE_BACKEND_URL:http://localhost:8080}
+websiteFrontendUrl: ${WEBSITE_FRONTEND_URL:http://localhost:3000}

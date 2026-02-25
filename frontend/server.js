@@ -5,6 +5,13 @@ const app = express();
 // ── Static assets (css/, js/, assets/) ─────────────────────────────────────
 app.use(express.static(path.join(__dirname)));
 
+// ── Environment Configuration ──────────────────────────────────────────────
+app.get('/env-config.js', (req, res) => {
+    const WEBSITE_BACKEND_URL = process.env.WEBSITE_BACKEND_URL || 'http://localhost:8080';
+    res.type('application/javascript');
+    res.send(`window.ENV_CONFIG = { WEBSITE_BACKEND_URL: "${WEBSITE_BACKEND_URL}" };`);
+});
+
 // ── Page routes ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/index.html', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));

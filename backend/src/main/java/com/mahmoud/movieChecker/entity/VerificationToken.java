@@ -9,7 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "verification_token")
+@Table(name = "verification_token", schema="movie_checker")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

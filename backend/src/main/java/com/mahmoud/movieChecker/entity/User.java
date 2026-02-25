@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema="movie_checker")
 @Getter
 @Setter
 @Builder
