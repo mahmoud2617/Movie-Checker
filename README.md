@@ -78,7 +78,7 @@ The frontend is built with **HTML**, **CSS**, and **JavaScript**.
 * **Backend**:
    * Open the `backend` folder.
    * Create a `.env` file (copy from `.env.example`).
-   * Put your database info and your OMDB API key in the `.env.file`.
+   * Put your database info and your OMDB API key in the `.env` file.
    * Run the app using `./mvnw spring-boot:run`.
 * **Frontend**:
    * Open the `frontend` folder.
